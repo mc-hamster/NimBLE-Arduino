@@ -33,6 +33,11 @@
  */
  // #define NIMBLE_CPP_DEBUG_LEVEL 0
 
+ /** @brief Un-comment to use timestamps with characteristic / descriptor values
+ *  If not enabled the `::get/readValue()` calls with a timestamp parameter will set the timestamp to 0.
+ */
+// #define NIMBLE_ATT_TIMESTAMP_ENABLED
+
 /** @brief Un-comment to see NimBLE host return codes as text debug log messages.
  *  Uses approx. 7kB of flash memory.
  */
