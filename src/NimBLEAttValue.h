@@ -94,6 +94,8 @@ public:
     NimBLEAttValue& operator  =(const std::string & source){setValue((uint8_t*)source.data(), (uint16_t)source.size()); return *this;}
     NimBLEAttValue& operator  =(NimBLEAttValue && source);
     NimBLEAttValue& operator  =(const NimBLEAttValue & source);
+    bool operator  ==(const NimBLEAttValue & source){return (m_attr_len == source.getLength()) ? memcmp(m_attr_value, source.getValue(), m_attr_len) == 0 : false;}
+    bool operator  !=(const NimBLEAttValue & source){return !(*this == source);}
 
 #ifdef NIMBLE_ARDUINO_AVAILABLE
     NimBLEAttValue(const String str):NimBLEAttValue((uint8_t*)str.c_str(), str.length()){}
