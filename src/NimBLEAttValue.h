@@ -199,6 +199,7 @@ inline bool NimBLEAttValue::setValue(const uint8_t *value, uint16_t len) {
     uint8_t *res = m_attr_value;
     if (len > m_capacity) {
         res = (uint8_t*)realloc(m_attr_value, (len + 1));
+        m_capacity = len;
     }
     assert(res && "setValue: realloc failed");
 
@@ -229,8 +230,10 @@ inline NimBLEAttValue& NimBLEAttValue::append(const uint8_t *value, uint16_t len
     }
 
     uint8_t* res = m_attr_value;
-    if ((m_attr_len + len) > m_capacity) {
-        res = (uint8_t*)realloc(m_attr_value, (m_attr_len + len + 1));
+    uint16_t new_len = m_attr_len + len;
+    if (new_len > m_capacity) {
+        res = (uint8_t*)realloc(m_attr_value, (new_len + 1));
+        m_capacity = new_len;
     }
     assert(res && "append: realloc failed");
 
@@ -243,7 +246,7 @@ inline NimBLEAttValue& NimBLEAttValue::append(const uint8_t *value, uint16_t len
     ble_npl_hw_enter_critical();
     m_attr_value = res;
     memcpy(m_attr_value + m_attr_len, value, len);
-    m_attr_len = m_attr_len + len;
+    m_attr_len = new_len;
     m_attr_value[m_attr_len] = '\0';
     setTimeStamp(t);
     ble_npl_hw_exit_critical(0);
