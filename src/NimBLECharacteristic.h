@@ -66,13 +66,13 @@ public:
                          uint16_t properties =
                          NIMBLE_PROPERTY::READ |
                          NIMBLE_PROPERTY::WRITE,
-                         uint16_t max_len = NIMBLE_DEFAULT_MAX_ATT_LEN,
+                         uint16_t max_len = BLE_ATT_ATTR_MAX_LEN,
                          NimBLEService* pService = nullptr);
     NimBLECharacteristic(const NimBLEUUID &uuid,
                          uint16_t properties =
                          NIMBLE_PROPERTY::READ |
                          NIMBLE_PROPERTY::WRITE,
-                         uint16_t max_len = NIMBLE_DEFAULT_MAX_ATT_LEN,
+                         uint16_t max_len = BLE_ATT_ATTR_MAX_LEN,
                          NimBLEService* pService = nullptr);
 
     ~NimBLECharacteristic();
@@ -93,51 +93,51 @@ public:
                                        uint32_t properties =
                                        NIMBLE_PROPERTY::READ |
                                        NIMBLE_PROPERTY::WRITE,
-                                       uint16_t max_len = NIMBLE_DEFAULT_MAX_ATT_LEN);;
+                                       uint16_t max_len = BLE_ATT_ATTR_MAX_LEN);;
     NimBLEDescriptor* createDescriptor(const NimBLEUUID &uuid,
                                        uint32_t properties =
                                        NIMBLE_PROPERTY::READ |
                                        NIMBLE_PROPERTY::WRITE,
-                                       uint16_t max_len = NIMBLE_DEFAULT_MAX_ATT_LEN);
+                                       uint16_t max_len = BLE_ATT_ATTR_MAX_LEN);
 
     void              addDescriptor(NimBLEDescriptor *pDescriptor);
     NimBLEDescriptor* getDescriptorByUUID(const char* uuid);
     NimBLEDescriptor* getDescriptorByUUID(const NimBLEUUID &uuid);
     NimBLEDescriptor* getDescriptorByHandle(uint16_t handle);
     void              removeDescriptor(NimBLEDescriptor *pDescriptor, bool deleteDsc = false);
+    NimBLEService*    getService();
+    uint16_t          getProperties();
 
     NimBLEAttValue    getValue(time_t *timestamp = nullptr);
     size_t            getDataLength();
-    /**
-     * @brief A template to convert the characteristic data to <type\>.
-     * @tparam T The type to convert the data to.
-     * @param [in] timestamp A pointer to a time_t struct to store the time the value was read.
-     * @param [in] skipSizeCheck If true it will skip checking if the data size is less than <tt>sizeof(<type\>)</tt>.
-     * @return The data converted to <type\> or NULL if skipSizeCheck is false and the data is
-     * less than <tt>sizeof(<type\>)</tt>.
-     * @details <b>Use:</b> <tt>getValue<type>(&timestamp, skipSizeCheck);</tt>
-     */
-    template<typename T>
-    T   getValue(time_t *timestamp = nullptr, bool skipSizeCheck = false) {
-            if(!skipSizeCheck && m_value.getLength() < sizeof(T)) {
-                return T();
-            }
-            return *((T *)m_value.getValue(timestamp));
-    }
-
     void              setValue(const uint8_t* data, size_t size);
     void              setValue(const std::string &value);
+
+    /**
+     * @brief Set the value of the characteristic.\n
+     * @param [in] value The NimBLEAttValue to set for the characteristic. 
+     */
+    void              setValue(const NimBLEAttValue &v){ m_value.setValue(v.getValue(), v.getLength()); }
+
     /**
      * @brief Convenience template to set the characteristic value to <type\>val.
      * @param [in] s The value to set.
      */
     template<typename T>
-    void              setValue(const T &s) {
-        setValue((uint8_t*)&s, sizeof(T));
-    }
+    void              setValue(const T &s) { m_value.setValue<T>(s); }
 
-    NimBLEService*    getService();
-    uint16_t          getProperties();
+    /**
+     * @brief A template to convert the characteristic data to <type\>.
+     * @tparam T The type to convert the data to.
+     * @param [in] timestamp (Optional) A pointer to a time_t struct to store the time the value was read.
+     * @param [in] skipSizeCheck (Optional) If true it will skip checking if the data size is less than <tt>sizeof(<type\>)</tt>.
+     * @return The data converted to <type\> or NULL if skipSizeCheck is false and the data is less than <tt>sizeof(<type\>)</tt>.
+     * @details <b>Use:</b> <tt>getValue<type>(&timestamp, skipSizeCheck);</tt>
+     */
+    template<typename T>
+    T   getValue(time_t *timestamp = nullptr, bool skipSizeCheck = false) {
+        return m_value.getValue<T>(timestamp, skipSizeCheck);
+    }
 
 private:
 

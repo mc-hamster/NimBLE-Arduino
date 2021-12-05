@@ -957,9 +957,7 @@ int NimBLEClient::handleGapEvent(struct ble_gap_event *event, void *arg) {
                     NIMBLE_LOGD(LOG_TAG, "Got Notification for characteristic %s",
                                 (*characteristic)->toString().c_str());
 
-                    ble_npl_hw_enter_critical();
                     (*characteristic)->m_value.setValue(event->notify_rx.om->om_data, event->notify_rx.om->om_len);
-                    ble_npl_hw_exit_critical(0);
 
                     if ((*characteristic)->m_notifyCallback != nullptr) {
                         NIMBLE_LOGD(LOG_TAG, "Invoking callback for notification on characteristic %s",

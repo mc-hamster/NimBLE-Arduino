@@ -29,6 +29,8 @@
     #include <time.h>
 #endif
 
+#define NIMBLE_ATT_INIT_LENGTH 20
+
 class NimBLEAttValue
 {
     uint8_t*     m_attr_value = nullptr;
@@ -45,8 +47,8 @@ public:
     NimBLEAttValue(const uint8_t *value, uint16_t len, uint16_t max_len = BLE_ATT_ATTR_MAX_LEN);
     NimBLEAttValue(const NimBLEAttValue & source) { deepCopy(source); }
     NimBLEAttValue(NimBLEAttValue && source);
-    NimBLEAttValue(std::initializer_list<uint8_t> list)
-                   :NimBLEAttValue(list, (uint16_t)list.size()){}
+    NimBLEAttValue(std::initializer_list<uint8_t> list, uint16_t max_len = BLE_ATT_ATTR_MAX_LEN)
+                   :NimBLEAttValue((uint8_t*)&list, (uint16_t)list.size(), max_len){}
     NimBLEAttValue(const char *value, uint16_t max_len = BLE_ATT_ATTR_MAX_LEN)
                    :NimBLEAttValue((uint8_t*)value, (uint16_t)strlen(value), max_len){}
     NimBLEAttValue(const std::string str, uint16_t max_len = BLE_ATT_ATTR_MAX_LEN)

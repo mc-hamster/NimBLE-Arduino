@@ -41,7 +41,7 @@ NimBLEDescriptor::NimBLEDescriptor(const char* uuid, uint16_t properties, uint16
  */
 NimBLEDescriptor::NimBLEDescriptor(NimBLEUUID uuid, uint16_t properties, uint16_t max_len,
                                     NimBLECharacteristic* pCharacteristic)
-:   m_value(NIMBLE_ATT_INIT_LENGTH > max_len ? max_len : NIMBLE_ATT_INIT_LENGTH, max_len) {
+:   m_value(std::min(NIMBLE_ATT_INIT_LENGTH, (int)max_len), max_len) {
     m_uuid               = uuid;
     m_handle             = NULL_HANDLE;                 // Handle is initially unknown.
     m_pCharacteristic    = pCharacteristic;

@@ -47,8 +47,8 @@ public:
     uint16_t              getHandle();
     NimBLEUUID            getUUID();
     std::string           toString();
-
     void                  setCallbacks(NimBLEDescriptorCallbacks* pCallbacks);
+    NimBLECharacteristic* getCharacteristic();
 
     size_t                getLength();
     NimBLEAttValue        getValue(time_t *timestamp = nullptr);
@@ -56,32 +56,31 @@ public:
 
     void                  setValue(const uint8_t* data, size_t size);
     void                  setValue(const std::string &value);
-    NimBLECharacteristic* getCharacteristic();
 
     /**
-     * @brief A template to convert the characteristic data to <type\>.
+     * @brief Set the value of the descriptor.\n
+     * @param [in] value The NimBLEAttValue to set for the descriptor.
+     */
+    void                  setValue(const NimBLEAttValue &v){ m_value.setValue(v.getValue(), v.getLength()); }
+
+    /**
+     * @brief Convenience template to set the characteristic value to <type\>val.
+     * @param [in] s The value to set.
+     */
+    template<typename T>
+    void                  setValue(const T &s) { m_value.setValue<T>(s); }
+
+    /**
+     * @brief A template to convert the descriptor data to <type\>.
      * @tparam T The type to convert the data to.
-     * @param [in] timestamp A pointer to a time_t struct to store the time the value was read.
-     * @param [in] skipSizeCheck If true it will skip checking if the data size is less than <tt>sizeof(<type\>)</tt>.
-     * @return The data converted to <type\> or NULL if skipSizeCheck is false and the data is
-     * less than <tt>sizeof(<type\>)</tt>.
+     * @param [in] timestamp (Optional) A pointer to a time_t struct to store the time the value was read.
+     * @param [in] skipSizeCheck (Optional) If true it will skip checking if the data size is less than <tt>sizeof(<type\>)</tt>.
+     * @return The data converted to <type\> or NULL if skipSizeCheck is false and the data is less than <tt>sizeof(<type\>)</tt>.
      * @details <b>Use:</b> <tt>getValue<type>(&timestamp, skipSizeCheck);</tt>
      */
     template<typename T>
     T   getValue(time_t *timestamp = nullptr, bool skipSizeCheck = false) {
-            if(!skipSizeCheck && m_value.getLength() < sizeof(T)) {
-                return T();
-            }
-            return *((T *)m_value.getValue(timestamp));
-    }
-
-    /**
-     * @brief Convenience template to set the descriptor value to <type\>val.
-     * @param [in] s The value to set.
-     */
-    template<typename T>
-    void setValue(const T &s) {
-        setValue((uint8_t*)&s, sizeof(T));
+        return m_value.getValue<T>(timestamp, skipSizeCheck);
     }
 
 private:

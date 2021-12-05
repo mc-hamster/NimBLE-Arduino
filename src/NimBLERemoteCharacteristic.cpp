@@ -518,7 +518,7 @@ NimBLEAttValue NimBLERemoteCharacteristic::readValue(time_t *timestamp) {
     ble_npl_hw_exit_critical(0);
 
     NIMBLE_LOGD(LOG_TAG, "<< readValue length: %d rc=%d", value.getLength(), rc);
-    return m_value;
+    return value;
 } // readValue
 
 
