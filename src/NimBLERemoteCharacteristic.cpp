@@ -180,10 +180,12 @@ int NimBLERemoteCharacteristic::descriptorDiscCB(uint16_t conn_handle,
      */
     if (rc == BLE_HS_EDONE) {
         pTaskData->rc = 0;
+        NIMBLE_LOGD(LOG_TAG, "descriptorDiscCB GIVE BLE_HS_EDONE");
         xTaskNotifyGive(pTaskData->task);
     } else if(rc != 0) {
         // Error; abort discovery.
         pTaskData->rc = rc;
+        NIMBLE_LOGD(LOG_TAG, "descriptorDiscCB GIVE %d", rc);
         xTaskNotifyGive(pTaskData->task);
     }
 
@@ -219,6 +221,7 @@ int NimBLERemoteCharacteristic::nextCharCB(uint16_t conn_handle,
         pTaskData->rc = rc;
     }
 
+    NIMBLE_LOGD(LOG_TAG, "nextCharCB GIVE %d", rc);
     xTaskNotifyGive(pTaskData->task);
     return rc;
 }
@@ -251,8 +254,9 @@ bool NimBLERemoteCharacteristic::retrieveDescriptors(const NimBLEUUID *uuid_filt
             NIMBLE_LOGE(LOG_TAG, "Error getting end handle rc=%d", rc);
             return false;
         }
-
+        NIMBLE_LOGD(LOG_TAG, "getEndHandle WAIT");
         ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
+        NIMBLE_LOGD(LOG_TAG, "getEndHandle CONTINUE");
 
         if (taskData.rc != 0) {
             NIMBLE_LOGE(LOG_TAG, "Could not retrieve end handle rc=%d", taskData.rc);
@@ -273,7 +277,9 @@ bool NimBLERemoteCharacteristic::retrieveDescriptors(const NimBLEUUID *uuid_filt
         return false;
     }
 
+    NIMBLE_LOGD(LOG_TAG, "retrieveDescriptors WAIT");
     ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
+    NIMBLE_LOGD(LOG_TAG, "retrieveDescriptors CONTINUE");
 
     if (taskData.rc != 0) {
         NIMBLE_LOGE(LOG_TAG, "Failed to retrieve descriptors; startHandle:%d endHandle:%d taskData.rc=%d",
@@ -485,7 +491,9 @@ std::string NimBLERemoteCharacteristic::readValue(time_t *timestamp) {
             return value;
         }
 
+        NIMBLE_LOGD(LOG_TAG, "readValue WAIT");
         ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
+        NIMBLE_LOGD(LOG_TAG, "readValue CONTINUE");
         rc = taskData.rc;
 
         switch(rc){
@@ -532,15 +540,17 @@ int NimBLERemoteCharacteristic::onReadCB(uint16_t conn_handle,
                 const struct ble_gatt_error *error,
                 struct ble_gatt_attr *attr, void *arg)
 {
+    NIMBLE_LOGI(LOG_TAG, "Read complete; status=%d conn_handle=%d", error->status, conn_handle);
+
     ble_task_data_t *pTaskData = (ble_task_data_t*)arg;
     NimBLERemoteCharacteristic *characteristic = (NimBLERemoteCharacteristic*)pTaskData->pATT;
-    uint16_t conn_id = characteristic->getRemoteService()->getClient()->getConnId();
+    NimBLERemoteService* psvc = characteristic->getRemoteService();
+    NimBLEClient* pcli = psvc->getClient();
+    uint16_t conn_id = pcli->getConnId();
 
     if(conn_id != conn_handle) {
         return 0;
     }
-
-    NIMBLE_LOGI(LOG_TAG, "Read complete; status=%d conn_handle=%d", error->status, conn_handle);
 
     std::string *strBuf = (std::string*)pTaskData->buf;
     int rc = error->status;
@@ -558,6 +568,7 @@ int NimBLERemoteCharacteristic::onReadCB(uint16_t conn_handle,
     }
 
     pTaskData->rc = rc;
+    NIMBLE_LOGD(LOG_TAG, "onReadCB GIVE %d", rc);
     xTaskNotifyGive(pTaskData->task);
 
     return rc;
@@ -760,8 +771,10 @@ bool NimBLERemoteCharacteristic::writeValue(const uint8_t* data, size_t length, 
             NIMBLE_LOGE(LOG_TAG, "Error: Failed to write characteristic; rc=%d", rc);
             return false;
         }
-
+        NIMBLE_LOGD(LOG_TAG, "writeValue WAIT");
         ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
+        NIMBLE_LOGD(LOG_TAG, "writeValue CONTINUE");
+
         rc = taskData.rc;
 
         switch(rc){
@@ -810,6 +823,7 @@ int NimBLERemoteCharacteristic::onWriteCB(uint16_t conn_handle,
     NIMBLE_LOGI(LOG_TAG, "Write complete; status=%d conn_handle=%d", error->status, conn_handle);
 
     pTaskData->rc = error->status;
+    NIMBLE_LOGD(LOG_TAG, "onWriteCB GIVE %d", error->status);
     xTaskNotifyGive(pTaskData->task);
 
     return 0;

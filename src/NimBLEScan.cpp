@@ -158,6 +158,7 @@ NimBLEScan::~NimBLEScan() {
 
             if(pScan->m_pTaskData != nullptr) {
                 pScan->m_pTaskData->rc = event->disc_complete.reason;
+                NIMBLE_LOGD(LOG_TAG,"DiscComplete GIVE");
                 xTaskNotifyGive(pScan->m_pTaskData->task);
             }
 
@@ -360,7 +361,9 @@ NimBLEScanResults NimBLEScan::start(uint32_t duration, bool is_continue) {
     m_pTaskData = &taskData;
 
     if(start(duration, nullptr, is_continue)) {
+        NIMBLE_LOGD(LOG_TAG, "start WAIT");
         ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
+        NIMBLE_LOGD(LOG_TAG, "start CONTINUE");
     }
 
     m_pTaskData = nullptr;
@@ -390,6 +393,7 @@ bool NimBLEScan::stop() {
     }
 
     if(m_pTaskData != nullptr) {
+        NIMBLE_LOGD(LOG_TAG,"stop GIVE");
         xTaskNotifyGive(m_pTaskData->task);
     }
 

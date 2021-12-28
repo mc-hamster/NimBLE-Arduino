@@ -260,8 +260,10 @@ bool NimBLEClient::connect(const NimBLEAddress &address, bool deleteAttibutes) {
         return false;
     }
 
+    NIMBLE_LOGD(LOG_TAG, "connect WAIT");
     // Wait for the connect timeout time +1 second for the connection to complete
     if(ulTaskNotifyTake(pdTRUE, pdMS_TO_TICKS(m_connectTimeout + 1000)) == pdFALSE) {
+        NIMBLE_LOGD(LOG_TAG, "connect CONTINUE FALSE");
         m_pTaskData = nullptr;
         // If a connection was made but no response from MTU exchange; disconnect
         if(isConnected()) {
@@ -277,6 +279,7 @@ bool NimBLEClient::connect(const NimBLEAddress &address, bool deleteAttibutes) {
         return false;
 
     } else if(taskData.rc != 0){
+        NIMBLE_LOGD(LOG_TAG, "connect CONTINUE TRUE");
         m_lastErr = taskData.rc;
         NIMBLE_LOGE(LOG_TAG, "Connection failed; status=%d %s",
                     taskData.rc,
@@ -324,7 +327,9 @@ bool NimBLEClient::secureConnection() {
             return false;
         }
 
+        NIMBLE_LOGD(LOG_TAG, "secureConnection WAIT");
         ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
+        NIMBLE_LOGD(LOG_TAG, "secureConnection CONTINUE");
     } while (taskData.rc == (BLE_HS_ERR_HCI_BASE + BLE_ERR_PINKEY_MISSING) && retryCount--);
 
     if(taskData.rc != 0){
@@ -686,7 +691,9 @@ bool NimBLEClient::retrieveServices(const NimBLEUUID *uuid_filter) {
     }
 
     // wait until we have all the services
+    NIMBLE_LOGD(LOG_TAG, "retrieveServices WAIT");
     ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
+    NIMBLE_LOGD(LOG_TAG, "retrieveServices CONTINUE");
     m_lastErr = taskData.rc;
 
     if(taskData.rc == 0){
@@ -736,7 +743,7 @@ int NimBLEClient::serviceDiscoveredCB(
                              NimBLEUtils::returnCodeToString(error->status));
         pTaskData->rc = error->status;
     }
-
+    NIMBLE_LOGD(LOG_TAG,"serviceDiscoveredCB GIVE");
     xTaskNotifyGive(pTaskData->task);
 
     NIMBLE_LOGD(LOG_TAG,"<< << Service Discovered");
@@ -1120,6 +1127,7 @@ uint16_t NimBLEClient::getMTU() {
     if(client->m_pTaskData != nullptr) {
         client->m_pTaskData->rc = rc;
         if(client->m_pTaskData->task) {
+            NIMBLE_LOGD(LOG_TAG,"handleGapEvent GIVE");
             xTaskNotifyGive(client->m_pTaskData->task);
         }
         client->m_pTaskData = nullptr;

@@ -179,7 +179,7 @@ int NimBLERemoteService::characteristicDiscCB(uint16_t conn_handle,
                              NimBLEUtils::returnCodeToString(error->status));
         pTaskData->rc = error->status;
     }
-
+    NIMBLE_LOGD(LOG_TAG,"characteristicDiscCB GIVE");
     xTaskNotifyGive(pTaskData->task);
 
     NIMBLE_LOGD(LOG_TAG,"<< Characteristic Discovered");
@@ -218,7 +218,9 @@ bool NimBLERemoteService::retrieveCharacteristics(const NimBLEUUID *uuid_filter)
         return false;
     }
 
+    NIMBLE_LOGD(LOG_TAG, "retrieveCharacteristics WAIT");
     ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
+    NIMBLE_LOGD(LOG_TAG, "retrieveCharacteristics CONTINUE");
 
     if(taskData.rc == 0){
         if (uuid_filter == nullptr) {

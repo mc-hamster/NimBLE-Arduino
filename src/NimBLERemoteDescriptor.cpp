@@ -149,7 +149,9 @@ std::string NimBLERemoteDescriptor::readValue() {
             return value;
         }
 
+        NIMBLE_LOGD(LOG_TAG, "readValue WAIT");
         ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
+        NIMBLE_LOGD(LOG_TAG, "readValue CONTINUE");
         rc = taskData.rc;
 
         switch(rc){
@@ -213,6 +215,7 @@ int NimBLERemoteDescriptor::onReadCB(uint16_t conn_handle,
     }
 
     pTaskData->rc = rc;
+    NIMBLE_LOGD(LOG_TAG,"onReadCB GIVE");
     xTaskNotifyGive(pTaskData->task);
 
     return rc;
@@ -252,6 +255,7 @@ int NimBLERemoteDescriptor::onWriteCB(uint16_t conn_handle,
     NIMBLE_LOGI(LOG_TAG, "Write complete; status=%d conn_handle=%d", error->status, conn_handle);
 
     pTaskData->rc = error->status;
+    NIMBLE_LOGD(LOG_TAG,"onWriteCB GIVE");
     xTaskNotifyGive(pTaskData->task);
 
     return 0;
@@ -309,7 +313,9 @@ bool NimBLERemoteDescriptor::writeValue(const uint8_t* data, size_t length, bool
             return false;
         }
 
+        NIMBLE_LOGD(LOG_TAG, "writeValue WAIT");
         ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
+        NIMBLE_LOGD(LOG_TAG, "writeValue CONTINUE");
         rc = taskData.rc;
 
         switch(rc) {
